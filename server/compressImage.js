@@ -12,6 +12,7 @@ async function compressImage(fileBuffer) {
                 fit: 'inside',
                 withoutEnlargement: true
             })
+            .normalize()
             // Use JPEG for photos, PNG for graphics with transparency
             .toFormat(metadata.hasAlpha ? 'png' : 'jpeg', {
                 quality: 50,  // For JPEG

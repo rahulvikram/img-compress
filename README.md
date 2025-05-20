@@ -56,3 +56,74 @@ The primary goal of this sprint is to implement a fully functional image process
 
 ## Integration
 This microservice is designed to be easily integrated into any part of the application that requires image processing. It can be used as a standalone service or as part of a larger image processing pipeline.
+
+## API Documentation
+
+### Endpoint
+```
+POST /compress
+```
+
+### Request Format
+- Method: POST
+- Content-Type: multipart/form-data
+- Body: Form data with a file field named 'file'
+- Supported file types: JPG, PNG
+- Maximum file size: 5MB
+
+### Response Format
+```json
+{
+    "compressedFile": "data:image/jpeg;base64,...",
+    "originalSize": 1234567,
+    "compressedSize": 234567
+}
+```
+
+### Using JavaScript/Fetch
+```javascript
+// Requesting data from the microservice
+app.post('/compress', upload.single('file'), async (req, res) => {
+    if (!req.file) {
+        return res.status(400).json({ error: 'No file uploaded' });
+    }
+    
+    try {
+        const compressedFile = await compressImage(req.file.buffer);
+        
+        // Get the correct MIME type based on the original file
+        const mimeType = req.file.mimetype.startsWith('image/png') ? 'image/png' : 'image/jpeg';
+        
+        // Convert buffer to base64 string with correct MIME type
+        const base64String = `data:${mimeType};base64,${compressedFile.toString('base64')}`;
+        
+        res.status(200).json({ 
+            compressedFile: base64String,
+            originalSize: req.file.size,
+            compressedSize: compressedFile.length
+        });
+    } catch (error) {
+        console.error('Error compressing image:', error);
+        res.status(500).json({ error: 'Failed to compress image' });
+    }
+});
+
+// Example usage
+const imageFile = document.querySelector('#imageInput').files[0];
+try {
+    const result = await compressImage(imageFile);
+    console.log('Original size:', result.originalSize);
+    console.log('Compressed size:', result.compressedSize);
+    
+    // Display the compressed image
+    const img = document.createElement('img');
+    img.src = result.compressedFile;
+    document.body.appendChild(img);
+} catch (error) {
+    console.error('Error:', error);
+}
+```
+
+### UML Sequence Diagram
+![UML Sequence Diagram](assets/uml.png)
+
